@@ -9,7 +9,6 @@ import {
   Query,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { User } from 'src/user/decorators/user.decorator';
 import { AuthGuard } from 'src/user/guards/auth.guard';
@@ -19,6 +18,7 @@ import { UserEntity } from 'src/user/user.entity';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
 import { ArticlesResponseInterface } from './types/articlesResponse.interface';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
+import { customValidationPipe } from 'src/common/pipes/customValidation.pipe';
 
 @Controller('articles')
 export class ArticleController {
@@ -43,7 +43,7 @@ export class ArticleController {
 
   @Post()
   @UseGuards(AuthGuard)
-  @UsePipes(new ValidationPipe())
+  @UsePipes(new customValidationPipe())
   async createArticle(
     @User() user: UserEntity,
     @Body('article') createArticleDto: CreateArticleDto,
@@ -64,7 +64,7 @@ export class ArticleController {
   }
 
   @Put(':slug')
-  @UsePipes(new ValidationPipe())
+  @UsePipes(new customValidationPipe())
   @UseGuards(AuthGuard)
   async updateArticle(
     @User('id') userId: number,

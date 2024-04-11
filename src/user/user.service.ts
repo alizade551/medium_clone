@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserEntity } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,6 +23,10 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
+    const errorResponse = {
+      errors: {},
+    };
+
     const userByEmail = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
@@ -26,11 +35,16 @@ export class UserService {
       where: { username: createUserDto.username },
     });
 
+    if (userByEmail) {
+      errorResponse.errors['email'] = 'Email has already been taken';
+    }
+
+    if (userByUsername) {
+      errorResponse.errors['username'] = 'Username has already been taken';
+    }
+
     if (userByEmail || userByUsername) {
-      throw new HttpException(
-        'Email or username already exists',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new BadRequestException(errorResponse);
     }
 
     const newUser = new UserEntity();
@@ -58,25 +72,24 @@ export class UserService {
   }
 
   async login(loginDto: LoginDto): Promise<UserEntity> {
+    const errorResponse = {
+      errors: {
+        credentials: 'email or password is invalid',
+      },
+    };
     const user = await this.userRepository.findOne({
       select: ['id', 'username', 'email', 'bio', 'password'],
       where: { email: loginDto.email },
     });
 
     if (!user) {
-      throw new HttpException(
-        'Email or username is incorrect',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new BadRequestException(errorResponse);
     }
 
     const isMatchPassword = await compare(loginDto.password, user.password);
 
     if (!isMatchPassword) {
-      throw new HttpException(
-        'Password is incorrect',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new BadRequestException(errorResponse);
     }
     delete user.password;
     return user;

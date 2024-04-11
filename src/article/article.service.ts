@@ -6,7 +6,7 @@ import {
 import { CreateArticleDto } from './dto/createArticle.dto';
 import { ArticleEntity } from './article.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Equal, getRepository, Repository } from 'typeorm';
+import { DeleteResult, Equal, Repository } from 'typeorm';
 import { UserEntity } from 'src/user/user.entity';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
 import slugify from 'slugify';
